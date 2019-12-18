@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
@@ -164,9 +164,13 @@ namespace ConsoleApplication1
             StringBuilder builder = new StringBuilder();
         }
 
+        static Dictionary<Type, ConstructorDelegate> _constructorCache = new Dictionary<Type, ConstructorDelegate>();
+
         static ConstructorDelegate GetConstructor<T>()
         {
             Type t = typeof(T);
+            if (_constructorCache.ContainsKey(t)) return _constructorCache[t];
+
             ConstructorInfo ctor = t.GetConstructor(new Type[0]);
 
             string methodName = t.Name + "Ctor";
@@ -176,6 +180,8 @@ namespace ConsoleApplication1
             lgen.Emit(OpCodes.Ret);
 
             ConstructorDelegate creator = (ConstructorDelegate)dm.CreateDelegate(typeof(ConstructorDelegate));
+
+            _constructorCache[t] = creator;
 
             return creator;
         }
